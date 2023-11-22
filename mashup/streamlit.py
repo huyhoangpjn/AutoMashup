@@ -60,24 +60,33 @@ if os.path.exists('./separated/mdx_extra/'):
     for index, folder_name in enumerate(os.listdir('./separated/mdx_extra/')):
         folder_path = os.path.join('./separated/mdx_extra/', folder_name)
         if os.path.isdir(folder_path):
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             col1.write(folder_name)
             button1_id = f"button1_{index}"
             button2_id = f"button2_{index}"
             if col2.button("Vocals", key=button1_id):
-                st.session_state.vocals_path = './separated/mdx_extra/' + folder_name + '/vocals.mp3'
-                st.session_state.vocals_song_path = './input/' + folder_name + '.mp3'
+                st.session_state.vocals = folder_name
+            if col3.button("Instru", key=button2_id):
+                st.session_state.instru = folder_name
 
-            if col2.button("Instru", key=button2_id):
-                st.session_state.instru_path = './separated/mdx_extra/' + folder_name + '/no_vocals.mp3'
-                st.session_state.instru_song_path = './input/' + folder_name + '.mp3'
+st.divider()
+col4, col5= st.columns(2)  
 
+col4.header("Vocals :")
+col4.write(st.session_state.vocals if "vocals" in st.session_state else "")
 
-if st.button("Generate Mashup"):
-    vocals_path = st.session_state.vocals_path
-    vocals_song_path = st.session_state.vocals_song_path
-    instru_song_path = st.session_state.instru_song_path
-    instru_path = st.session_state.instru_path
+col5.header("Instru :")
+col5.write(st.session_state.instru if "instru" in st.session_state else "")
+
+if st.button("Generate Mashup", disabled=not ("vocals" in st.session_state and "instru" in st.session_state)):
+    vocals = st.session_state.vocals
+    instru = st.session_state.instru 
+
+    vocals_path = './separated/mdx_extra/' + vocals + '/vocals.mp3'
+    vocals_song_path = './input/' + vocals + '.mp3'
+    
+    instru_path = './separated/mdx_extra/' + instru + '/no_vocals.mp3'
+    instru_song_path = './input/' + instru + '.mp3'
 
     song1, sr1 = librosa.load(vocals_song_path)
     vocals, sr1 = librosa.load(vocals_path)
