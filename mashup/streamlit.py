@@ -6,6 +6,11 @@ import io
 import base64
 import soundfile as sf
 
+## MASHUP METHODS
+
+mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2)]
+
+
 global vocals_song_path
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/mdx_extra', exist_ok=True)
@@ -51,8 +56,6 @@ col4.write(st.session_state.vocals if "vocals" in st.session_state else "")
 
 col5.header("Instru :")
 col5.write(st.session_state.instru if "instru" in st.session_state else "")
-
-mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2)]
 
 for mashup_technic in mashup_technics:
     if st.button(mashup_technic[0], disabled=not ("vocals" in st.session_state and "instru" in st.session_state)):
