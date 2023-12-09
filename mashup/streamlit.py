@@ -1,14 +1,14 @@
 import streamlit as st
 import os
 import demucs.separate
-from mashup import mashup_technic_1, mashup_technic_2
+from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_3
 import io
 import base64
 import soundfile as sf
 
 ## MASHUP METHODS
 
-mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2)]
+mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2), ('Mashup Technic 3', mashup_technic_3)]
 
 
 global vocals_song_path
@@ -20,10 +20,14 @@ os.makedirs('./output', exist_ok=True)
 st.title("AutoMashup")
 
 # Upload de fichiers audio
-audio_file = st.file_uploader("Sélectionnez un fichier audio pour la voix (formats pris en charge : mp3, wav)", type=["mp3", "wav"])
+
+with st.form("audio-form", clear_on_submit=True):
+    
+    audio_file = st.file_uploader("Sélectionnez un fichier audio pour la voix (formats pris en charge : mp3, wav)", type=["mp3", "wav"])
+    submitted = st.form_submit_button("Upload and seperate")
 
 # Check if files are uploaded
-if audio_file is not None:
+if submitted and audio_file:
     # Utilisez la méthode name pour obtenir le nom du fichier
     filename = audio_file.name
     path = f"./input/{filename}"
@@ -34,6 +38,9 @@ if audio_file is not None:
 
     instru_path = f'./separated/mdx_extra/{filename}/no_vocals.mp3'
     vocals_path = f'./separated/mdx_extra/{filename}/vocals.mp3'
+    
+    # Avoid run demucs multiples times if the uploaded file still exist
+    audio_file = None
 
 if os.path.exists('./separated/mdx_extra/'):
     for index, folder_name in enumerate(os.listdir('./separated/mdx_extra/')):
