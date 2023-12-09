@@ -1,1 +1,7 @@
 /test_spleeter/pretrained_models/*
+/.venv/*
+/beat_track/*
+/mashup/__pycache__/
+/mashup/input/*
+/mashup/output/*
+/mashup/separated/*

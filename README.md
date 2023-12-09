@@ -6,6 +6,8 @@ Automashup is a Python application that allows you to generate a mashup from two
 
 pip install -r requirements.txt
 
+To install All-In-One Music Structure Analyzer: https://github.com/mir-aidj/all-in-one/tree/main (LINUX, MACOS RECOMMANDED!)
+
 ## Tutorial
 
 cd ./mashup
