@@ -8,6 +8,8 @@ pip install -r requirements.txt
 
 To install All-In-One Music Structure Analyzer: https://github.com/mir-aidj/all-in-one/tree/main (LINUX, MACOS RECOMMANDED!)
 
+To install and test DMC on your own: https://github.com/csteinmetz1/automix-toolkit (clone + test directly on your machine, dont forget to modify the paths) 
+
 ## Tutorial
 
 cd ./mashup
