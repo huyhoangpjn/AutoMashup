@@ -61,8 +61,8 @@ def mashup_technic_2(vocals, instru):
     tempo_ratio2 = average_bpm / tempo2
 
     # Ajustement des cadences de battement
-    beat_frames1_aligned = increase_array_size(beat_frames1 * tempo_ratio1, len(beat_frames2))
-    beat_frames2_aligned = beat_frames2 * tempo_ratio2
+    beat_frames1_aligned = increase_array_size(beat_frames1 * tempo_ratio1, max(len(beat_frames1),len(beat_frames2)))
+    beat_frames2_aligned = increase_array_size(beat_frames2 * tempo_ratio2, max(len(beat_frames1),len(beat_frames2)))
 
     # Calcul de l'offset pour l'alignement temporel
     offset = int(np.mean(beat_frames2_aligned - beat_frames1_aligned))
