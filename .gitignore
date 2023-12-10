@@ -5,6 +5,3 @@
 /mashup/input/*
 /mashup/output/*
 /mashup/separated/*
-/automix-toolkit/automix_toolkit.egg-info
-/automix-toolkit/notebooks/.ipynb_checkpoints
-/automix-toolkit/notebooks/checkpoints
