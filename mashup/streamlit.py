@@ -70,6 +70,18 @@ for mashup_technic in mashup_technics:
         instru = st.session_state.instru 
         mashup, sr = mashup_technic[1](vocals, instru)
         st.audio(mashup, sample_rate=sr)
+
+        # Add a progress bar
+        progress_bar = st.progress(0)
+
+        # Use tqdm to display progress in the console
+        for _ in tqdm(range(100), desc="Processing", position=0, leave=True):
+            # Simulate some processing time
+            time.sleep(0.01)
+            progress_bar.progress(_/100)
+
+        mashup, sr = mashup_technic[1](vocals, instru)
+        st.audio(mashup, sample_rate=sr)
         
         buffer = io.BytesIO()
         sf.write(buffer, mashup, sr, format='wav')
@@ -78,4 +90,15 @@ for mashup_technic in mashup_technics:
         b64 = base64.b64encode(buffer.getvalue()).decode()
 
         st.markdown(f'<a href="data:audio/wav;base64,{b64}" download="mashup.wav">Télécharger le fichier audio</a>', unsafe_allow_html=True)
+
+        # Add a delete button for the selected songs
+        if st.button("Supprimer les chansons sélectionnées"):
+            if "vocals" in st.session_state:
+                vocals_folder = f'./separated/mdx_extra/{st.session_state.vocals}'
+                shutil.rmtree(vocals_folder, ignore_errors=True)
+                st.session_state.pop("vocals", None)
+            if "instru" in st.session_state:
+                instru_folder = f'./separated/mdx_extra/{st.session_state.instru}'
+                shutil.rmtree(instru_folder, ignore_errors=True)
+                st.session_state.pop("instru", None)
 
