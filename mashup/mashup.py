@@ -1,11 +1,30 @@
-from utils import increase_array_size
+from utils import increase_array_size, load_instru, get_path, \
+get_input_path
 import librosa
 import numpy as np
 import essentia.standard as es
 from pathlib import Path
 import allin1
 
-def mashup_technic_1(vocals, instru):
+def mashup_technic_1(tracks):
+    tempo_song, sr = librosa.load(get_input_path(tracks["beat"]))
+    tempo, beat_frames = librosa.beat.beat_track(y=tempo_song, sr=sr)
+    mashup = np.zeros(0)
+    for type, track in tracks.items():
+        if(type!="beat"):
+            path = get_input_path(track)
+            song, track_sr = librosa.load(path)
+            track_tempo, track_beat_frames = librosa.beat.beat_track(y=song, sr=track_sr)
+            beat_frames_aligned = track_beat_frames * (tempo / track_tempo)
+            separated_song, _ = librosa.load(get_path(track, type))
+            instru_aligned = np.roll(separated_song, int(beat_frames_aligned[0] - beat_frames[0]))
+            size = max(len(instru_aligned), len(mashup))
+            mashup = np.array(mashup)
+            mashup = (increase_array_size(instru_aligned, size) + increase_array_size(mashup, size))
+    return (mashup, sr)
+
+
+def mashup_technic_2(tracks):
     vocals_path = './separated/mdx_extra/' + vocals + '/vocals.mp3'
     vocals_song_path = './input/' + vocals + '.mp3'
     
@@ -18,29 +37,7 @@ def mashup_technic_1(vocals, instru):
     song2, sr2 = librosa.load(instru_song_path)
     instru, sr2 = librosa.load(instru_path)
 
-    tempo1, beat_frames1 = librosa.beat.beat_track(y=song1, sr=sr1)
-    tempo2, beat_frames2 = librosa.beat.beat_track(y=song2, sr=sr2)
-
-    beat_frames2_aligned = beat_frames2 * (tempo1 / tempo2)
-
-    instru_aligned = np.roll(instru, int(beat_frames2_aligned[0] - beat_frames1[0]))
-
-    size = max(len(instru_aligned), len(vocals))
-    return (increase_array_size(instru_aligned, size) + increase_array_size(vocals, size), sr1)
-
-def mashup_technic_2(vocals, instru):
-    vocals_path = './separated/mdx_extra/' + vocals + '/vocals.mp3'
-    vocals_song_path = './input/' + vocals + '.mp3'
-    
-    instru_path = './separated/mdx_extra/' + instru + '/no_vocals.mp3'
-    instru_song_path = './input/' + instru + '.mp3'
-
-    song1, sr1 = librosa.load(vocals_song_path)
-    vocals, sr1 = librosa.load(vocals_path)
-
-    song2, sr2 = librosa.load(instru_song_path)
-    instru, sr2 = librosa.load(instru_path)
-
+    song2, instru, sr2 = create_instru(bass,drums,other)
     # Extraction des tempos et des cadences de battement
     tempo1, beat_frames1 = librosa.beat.beat_track(y=song1, sr=sr1)
     tempo2, beat_frames2 = librosa.beat.beat_track(y=song2, sr=sr2)
@@ -51,8 +48,7 @@ def mashup_technic_2(vocals, instru):
 
     audio2 = es.MonoLoader(filename=instru_song_path)()
     rhythm_extractor = es.RhythmExtractor2013(method="multifeature")
-    bpm, beat_frames2, beats_confidence, _, beats_intervals = rhythm_extractor(audio2)
-    
+
     # Calcul du BPM moyen
     average_bpm = np.mean([tempo1, tempo2])
 
@@ -78,9 +74,32 @@ def mashup_technic_2(vocals, instru):
     # Création du mashup
     mashup = instru_aligned + vocals
 
-    return mashup, sr1
+    tempo_song, sr = librosa.load(get_input_path(tracks["beat"]))
 
-def mashup_technic_3(vocals, instru):
+    tempo_audio = es.MonoLoader(filename=get_input_path(tracks["beat"]))()
+    rhythm_extractor = es.RhythmExtractor2013(method="multifeature")
+    tempo, beat_frames, _, _, _ = rhythm_extractor(tempo_audio)
+
+    mashup = np.zeros(0)
+    for type, track in tracks.items():
+        if(type!="beat"):
+            path = get_path(track, type)
+            song, track_sr = librosa.load(path)
+            track_tempo, track_beat_frames = librosa.beat.beat_track(y=song, sr=track_sr)
+
+            audio = es.MonoLoader(filename=path)()
+            rhythm_extractor = es.RhythmExtractor2013(method="multifeature")
+            bpm, beat_frames1, beats_confidence, _, beats_intervals = rhythm_extractor(audio1)
+
+
+            beat_frames_aligned = track_beat_frames * (tempo / track_tempo)
+            instru_aligned = np.roll(song, int(beat_frames_aligned[0] - beat_frames[0]))
+            size = max(len(instru_aligned), len(mashup))
+            mashup = np.array(mashup)
+            mashup = (increase_array_size(instru_aligned, size) + increase_array_size(mashup, size))
+    return (mashup, sr)
+
+def mashup_technic_3(tracks):
     vocals_path = './separated/mdx_extra/' + vocals + '/vocals.mp3'
     vocals_song_path = './input/' + vocals
     vocals_song_path += '.mp3' if Path(vocals_song_path+'.mp3').is_file() else '.wav'
