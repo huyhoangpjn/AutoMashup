@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_3
+from mashup import mashup_technic_1, mashup_technic_2
 from utils import remove_track, key_finder, get_path, load_track, \
 split_track, key_from_dict
 import soundfile as sf
@@ -118,7 +118,7 @@ else:
     merger.add_input(name='Input 2')
     merger.add_input(name='Input 3')
     merger.add_input(name='Input 4')
-    
+
     merger.add_option("Method", 'select', value=next(iter(mashup_technics)), items=list(mashup_technics.keys()))
 
     def merger_func(self):
