@@ -7,21 +7,19 @@ from pathlib import Path
 import allin1
 
 def mashup_technic_1(tracks):
-    tempo_song, sr = librosa.load(get_input_path(tracks["beat"]))
-    tempo, beat_frames = librosa.beat.beat_track(y=tempo_song, sr=sr)
+    # tempo_song, sr = librosa.load(get_input_path(tracks["beat"]))
+    _, sr = tracks[0][0:2]
+    tempo, beat_frames = tracks[0][3]["beats"]
     mashup = np.zeros(0)
-    for type, track in tracks.items():
-        if(type!="beat"):
-            path = get_input_path(track)
-            song, track_sr = librosa.load(path)
-            track_tempo, track_beat_frames = librosa.beat.beat_track(y=song, sr=track_sr)
-            beat_frames_aligned = track_beat_frames * (tempo / track_tempo)
-            separated_song, _ = librosa.load(get_path(track, type))
-            instru_aligned = np.roll(separated_song, int(beat_frames_aligned[0] - beat_frames[0]))
-            size = max(len(instru_aligned), len(mashup))
-            mashup = np.array(mashup)
-            mashup = (increase_array_size(instru_aligned, size) + increase_array_size(mashup, size))
-    return (mashup, sr)
+    for track in tracks:
+        track_tempo, track_beat_frames = track[3]["bpm"], track[3]["beats"]
+        beat_frames_aligned = track_beat_frames * (tempo / track_tempo)
+        separated_song = track[1]
+        instru_aligned = np.roll(separated_song, int(beat_frames_aligned[0] - beat_frames[0]))
+        size = max(len(instru_aligned), len(mashup))
+        mashup = np.array(mashup)
+        mashup = (increase_array_size(instru_aligned, size) + increase_array_size(mashup, size))
+    return (tracks[0][0], mashup, sr, tracks[0][3])
 
 
 def mashup_technic_2(tracks):

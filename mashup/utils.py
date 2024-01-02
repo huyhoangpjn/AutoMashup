@@ -34,12 +34,14 @@ def adjust_bpm(bpm):
             bpm /= 2
     return bpm
 
+
 def get_path(track_name, type):
     path = './separated/htdemucs/' + track_name + '/' + type + '.wav'
     if not os.path.exists(path):
         path = './separated/htdemucs/' + track_name + type + '.mp3'
     assert(os.path.exists(path))
     return path
+
 
 def get_input_path(track_name):
     if os.path.exists('./input/' + track_name + '.wav'):
@@ -49,6 +51,7 @@ def get_input_path(track_name):
     
     assert(os.path.exists(input_path))
     return input_path
+
 
 def load_instru(bass, drums, other):
     bass_path = './separated/htdemucs/' + bass + '/bass.wav'
@@ -64,16 +67,19 @@ def load_instru(bass, drums, other):
         tracks[i] = (librosa.resample(tracks[i][0], orig_sr=tracks[i][1], target_sr=sr), sr)
     return (np.vstack([track[0] for track in tracks]), sr)
 
+
 def remove_track(track_name):
     struct_path = "./struct/" + track_name + ".json"
     folder_path = "./separated/htdemucs/" + track_name + "/"
     os.remove(struct_path)
     shutil.rmtree(folder_path)
 
+
 def extract_filename(file_path):
     filename = os.path.basename(file_path)
     filename_without_extension, _ = os.path.splitext(filename)
     return filename_without_extension
+
 
 def key_finder(path): 
     filename = extract_filename(path)
@@ -83,3 +89,25 @@ def key_finder(path):
         data['key'] = KeyFinder(path).key_dict
     with open(struct_path, 'w') as file:
         json.dump(data, file, indent=2)
+
+
+def load_track(track_name):
+    audio, sr = librosa.load(get_input_path(track_name))
+    struct_path = f"./struct/{track_name}.json"
+    with open(struct_path, 'r') as file:
+        metadata = json.load(file)
+    return track_name, audio, sr, metadata
+
+
+def split_track(track, type):
+    track_name, _, sr, metadata = track
+    audio, _ = librosa.load(get_path(track_name, type))
+    return track_name, audio, sr, metadata
+
+
+def key_from_dict(dict):
+    best_key, best_score = "", ""
+    for key, score in dict.items():
+        if best_score=="" or best_score<score:
+            best_key, best_score = key, score
+    return best_key
