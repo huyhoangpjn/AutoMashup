@@ -1,126 +1,159 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_3
-from utils import remove_track, key_finder
-import io
-import base64
+from mashup import mashup_technic_1, mashup_technic_2
+from utils import remove_track, key_finder, get_path, load_track, \
+split_track, key_from_dict
 import soundfile as sf
 import allin1
+import json
+from barfi import st_barfi, Block
 
 ## MASHUP METHODS
 # mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2), ('Mashup Technic 3', mashup_technic_3)]
-mashup_technics = [('Mashup Technic 1', mashup_technic_1)]
+mashup_technics = {'Mashup Technic 1': mashup_technic_1}
 
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)
 os.makedirs('./output', exist_ok=True)
+st.set_page_config(layout="wide")
 
-st.set_page_config(layout="wide")  
 # Titre de l'application
 st.title("AutoMashup")
-if st.checkbox("Advanced mode"):
-    st.session_state.advanced = True
-else:
-    st.session_state.advanced = False
+st.markdown("### A workflow app which generates mashups")
+
 # Upload de fichiers audio
 
 with st.form("audio-form", clear_on_submit=True):
-    audio_file = st.file_uploader("Sélectionnez un fichier audio (formats pris en charge : mp3, wav)", type=["mp3", "wav"])
-    submitted = st.form_submit_button("Envoyer le(s) fichier(s) et lancer le preprocessing")
+    audio_files = st.file_uploader("Select audio files (mp3, wav)", type=["mp3", "wav"], accept_multiple_files=True)
+    submitted = st.form_submit_button("Trigger Preprocessing")
 
 # Check if files are uploaded
-if submitted and audio_file:
-    # Utilisez la méthode name pour obtenir le nom du fichier
-    filename = audio_file.name
-    path = f"./input/{filename}"
+if submitted and audio_files:
+    for audio_file in audio_files:
+        filename = audio_file.name
+        with st.spinner('Preprocessing ' + filename):
+            path = f"./input/{filename}"
 
-    with open(path, "wb") as f:
-        f.write(audio_file.read())
-    # allin1.analyze(path, out_dir='./struct', demix_dir='./separated')
-    allin1.analyze(path, out_dir='./struct', demix_dir='./separated', keep_byproducts=True)
-    key_finder(path)
-    audio_file = None
+            with open(path, "wb") as f:
+                f.write(audio_file.read())
+            allin1.analyze(path, out_dir='./struct', demix_dir='./separated', keep_byproducts=True)
+            key_finder(path)
+            audio_file = None
+    st.success('Preprocessing completed !')
+
+if os.path.exists('./separated/htdemucs/'):
+    st.title('Tracks')
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.markdown("## Song Name")
+    col2.markdown("## BPM")
+    col3.markdown("## Key")
+    col4.markdown("## Analysis")
+    st.divider()
+    for index, folder_name in enumerate(os.listdir('./separated/htdemucs/')):
+        folder_path = os.path.join('./struct/' + folder_name + '.json')
+        if os.path.exists(folder_path):
+            col1, col2, col3, col4, col5 = st.columns(5)
+            col1.write(folder_name)
+            with open('./struct/' + folder_name + '.json') as f:
+                analysis = json.load(f)
+                col2.markdown(analysis['bpm'] if 'bpm' in analysis else "")
+                col3.markdown(key_from_dict(analysis["key"]) if "key" in analysis else "")
+            with open('./struct/' + folder_name + '.json') as f:
+                download_button_id = f"download_button_{index}"
+                col4.download_button('Analysis', f, key = download_button_id)
+            remove_button_id = f"remove_button_{index}"
+            if col5.button("Remove Track", key = remove_button_id):
+                remove_track(folder_name)
+                st.rerun()
+
+st.divider()
+
+##### BARFI
+### Tracks
+def feed_func(self):
+    with st.spinner('Computing ' + self._name):
+        self.set_interface(name="Track", value=load_track(self._options['Track']['value']))
+
+track_list = []
 
 if os.path.exists('./separated/htdemucs/'):
     for index, folder_name in enumerate(os.listdir('./separated/htdemucs/')):
         folder_path = os.path.join('./struct/' + folder_name + '.json')
         if os.path.exists(folder_path):
-            if ("advanced" in st.session_state and st.session_state.advanced):
-                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-                col1.write(folder_name)
-                button1_id = f"button1_{index}_1"
-                button2_id = f"button2_{index}_1"
-                button3_id = f"button3_{index}_1"
-                button4_id = f"button4_{index}_1"
-                button5_id = f"button5_{index}_1"
-                button6_id = f"button6_{index}_1"
-                if col2.button("Bass", key=button1_id):
-                    st.session_state.bass = folder_name
-                if col3.button("Drums", key=button2_id):
-                    st.session_state.drums = folder_name
-                if col4.button("Other", key=button3_id):
-                    st.session_state.other = folder_name
-                if col5.button("Vocals", key=button4_id):
-                    st.session_state.vocals = folder_name
-                if col6.button("Beat Structure", key = button5_id):
-                    st.session_state.beat = folder_name
-                if col7.button("Remove Track", key = button6_id):
-                    remove_track(folder_name)
-            else :
-                col1, col2, col3, col4 = st.columns(4)
-                col1.write(folder_name)
-                button1_id = f"button1_{index}"
-                button2_id = f"button2_{index}"
-                button3_id = f"button3_{index}"
-                if col2.button("Vocals", key=button1_id):
-                    st.session_state.vocals = folder_name
-                    st.session_state.beat = folder_name
-                if col3.button("Instru", key=button2_id):
-                    st.session_state.drums = folder_name
-                    st.session_state.bass = folder_name
-                    st.session_state.other = folder_name 
-                if col4.button("Remove Track", key = button3_id):
-                    remove_track(folder_name)
+            track_list.append(folder_name)
 
-st.divider()
-
-
-if ("advanced" in st.session_state and st.session_state.advanced):
-    col1, col2, col3, col4, col5 = st.columns(5)  
-    col1.header("Bass :")
-    col1.write(st.session_state.bass if "bass" in st.session_state else "")
-
-    col2.header("Drums :")
-    col2.write(st.session_state.drums if "drums" in st.session_state else "")
-
-    col3.header("Other :")
-    col3.write(st.session_state.other if "other" in st.session_state else "")
-
-    col4.header("Vocals :")
-    col4.write(st.session_state.vocals if "vocals" in st.session_state else "")
-
-    col5.header("Beat Structure :")
-    col5.write(st.session_state.beat if "beat" in st.session_state else "")
+if track_list==[]:
+    st.markdown("## Upload some songs before using AutoMashup")
 else:
-    col1, col2 = st.columns(2)  
-    col1.header("Vocals :")
-    col1.write(st.session_state.vocals if "vocals" in st.session_state else "")
-
-    col2.header("Instru :")
-    col2.write(st.session_state.other if "other" in st.session_state else "")
+    feed = Block(name="Track")
+    feed.add_output("Track")
+    feed.add_compute(feed_func)
+    feed.add_option("Track", 'select', value=track_list[0], items=track_list),
 
 
-for mashup_technic in mashup_technics:
-    if st.button(mashup_technic[0], disabled=not("beat" in st.session_state and ("vocals" in st.session_state or "bass" in st.session_state or "drums" in st.session_state or "other" in st.session_state))):
-        tracks = {}
-        for track in ["beat", "vocals", "bass", "other", "drums"]:
-            if track in st.session_state:
-                tracks[track] = st.session_state[track]
-        mashup, sr = mashup_technic[1](tracks)
-        st.audio(mashup, sample_rate=sr) 
-        buffer = io.BytesIO()
-        sf.write(buffer, mashup, sr, format='wav')
-        # Encodez le fichier audio en base64
-        b64 = base64.b64encode(buffer.getvalue()).decode()
-        st.markdown(f'<a href="data:audio/wav;base64,{b64}" download="mashup.wav">Télécharger le fichier audio</a>', unsafe_allow_html=True)
+    ### Splitter
+    splitter = Block(name='Splitter')
+    splitter.add_input(name='Track')
+    splitter.add_output(name='Vocals')
+    splitter.add_output(name='Bass')
+    splitter.add_output(name='Drums')
+    splitter.add_output(name='Other')
 
+    def splitter_func(self):
+        track = self.get_interface(name='Track')
+        with st.spinner('Computing ' + self._name):
+            self.set_interface(name='Vocals', value=split_track(track, 'vocals'))
+            self.set_interface(name='Bass', value=split_track(track, 'bass'))
+            self.set_interface(name='Drums', value=split_track(track, 'drums'))
+            self.set_interface(name='Other', value=split_track(track, 'other'))
+
+    splitter.add_compute(splitter_func)
+
+    ### Merger
+    merger = Block(name='Mixer')
+
+    merger.add_output(name='Result')
+
+    merger.add_input(name='Input 1 (Beat Structure)')
+    merger.add_input(name='Input 2')
+    merger.add_input(name='Input 3')
+    merger.add_input(name='Input 4')
+
+    merger.add_option("Method", 'select', value=next(iter(mashup_technics)), items=list(mashup_technics.keys()))
+
+    def merger_func(self):
+        with st.spinner('Computing ' + self._name):
+            track1 = self.get_interface(name='Input 1 (Beat Structure)')
+            track2 = self.get_interface(name='Input 2')
+            track3 = self.get_interface(name='Input 3')
+            track4 = self.get_interface(name='Input 4')
+
+            if (track1 == None):
+                st.markdown("### "+self._name)
+                st.markdown("The Input 1 must be set")
+            else :
+                tracks = [track1, track2, track3, track4]
+                tracks = [track for track in tracks if track is not None]
+                self.set_interface(name="Result", value=mashup_technics[self._options['Method']['value']](tracks))
+
+    merger.add_compute(merger_func)
+
+    ### Player
+    def player_func(self):
+        with st.spinner('Computing ' + self._name):
+            track = self.get_interface(name='Track')
+            if (track==None):
+                st.markdown("### "+self._name)
+                st.markdown("The player must have an input")
+            else:
+                st.markdown("### "+self._name + " : " + track[0])
+                mashup, sr = track[1], track[2]
+                st.audio(mashup, sample_rate=sr)
+                st.divider()
+
+
+    player = Block(name='Player')
+    player.add_input(name='Track')
+    player.add_compute(player_func)
+
+    barfi_result = st_barfi(base_blocks=[feed, splitter, merger, player], compute_engine=True)
