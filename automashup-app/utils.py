@@ -96,13 +96,25 @@ def load_track(track_name):
     struct_path = f"./struct/{track_name}.json"
     with open(struct_path, 'r') as file:
         metadata = json.load(file)
-    return track_name, audio, sr, metadata
+    dict = {
+        'track_name' : track_name, 
+        'audio' : audio, 
+        'sr' : sr, 
+        'metadata' : metadata
+        }
+    return dict
 
 
 def split_track(track, type):
     track_name, _, sr, metadata = track
     audio, _ = librosa.load(get_path(track_name, type))
-    return track_name + '-' + type, audio, sr, metadata
+    dict = {
+        'track_name' : track_name + '-' + type, 
+        'audio' : audio, 
+        'sr' : sr, 
+        'metadata' : metadata
+        }
+    return dict
 
 
 def key_from_dict(dict):
