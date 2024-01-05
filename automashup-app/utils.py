@@ -106,7 +106,9 @@ def load_track(track_name):
 
 
 def split_track(track, type):
-    track_name, _, sr, metadata = track
+    track_name = track["track_name"]
+    sr = track["sr"]
+    metadata = track["metadata"]
     audio, _ = librosa.load(get_path(track_name, type))
     dict = {
         'track_name' : track_name + '-' + type, 
