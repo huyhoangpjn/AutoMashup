@@ -4,7 +4,7 @@ Automashup is a Python application that allows you to generate a mashup from two
 
 ## Installation
 
-pip install -r requirements.txt
+> pip install -r requirements.txt
 
 To install All-In-One Music Structure Analyzer: https://github.com/mir-aidj/all-in-one/tree/main (LINUX, MACOS RECOMMANDED!)
 
@@ -12,9 +12,9 @@ To install and test DMC on your own: https://github.com/csteinmetz1/automix-tool
 
 ## Tutorial
 
-cd ./mashup
+> cd ./automashup-app
 
-streamlit run streamlit.py
+> streamlit run streamlit.py
 
 ## Adding Mashup Methods
 

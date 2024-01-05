@@ -1,3 +1,6 @@
+allin1==1.1.0
+barfi==0.7.0
+pymusickit==0.1.1
 matplotlib
 spleeter
 demucs==4.0.1
