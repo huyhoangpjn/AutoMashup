@@ -1,8 +1,10 @@
 /test_spleeter/pretrained_models/*
 /.venv/*
 /beat_track/*
-/mashup/__pycache__/
-/mashup/input/*
-/mashup/output/*
-/mashup/separated/*
+/automashup-app/__pycache__/
+/automashup-app/input/*
+/automashup-app/output/*
+/automashup-app/separated/*
+/automashup-app/struct/*
+/automashup-app/demix/*
 /automix-toolkit
