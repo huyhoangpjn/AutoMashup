@@ -1,9 +1,8 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2
-from utils import remove_track, key_finder, get_path, load_track, \
+from mashup import mashup_technic_1
+from utils import remove_track, key_finder, load_track, \
 split_track, key_from_dict
-import soundfile as sf
 import allin1
 import json
 from barfi import st_barfi, Block
@@ -73,7 +72,6 @@ st.divider()
 def feed_func(self):
     with st.spinner('Computing ' + self._name):
         self.set_interface(name="Track", value=load_track(self._options['Track']['value']))
-
 track_list = []
 
 if os.path.exists('./separated/htdemucs/'):
@@ -146,8 +144,8 @@ else:
                 st.markdown("### "+self._name)
                 st.markdown("The player must have an input")
             else:
-                st.markdown("### "+self._name + " : " + track[0])
-                mashup, sr = track[1], track[2]
+                st.markdown("### "+self._name + " : " + track["track_name"])
+                mashup, sr = track["audio"], track["sr"]
                 st.audio(mashup, sample_rate=sr)
                 st.divider()
 

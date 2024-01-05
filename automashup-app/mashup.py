@@ -12,6 +12,7 @@ import numpy as np
 #     'metadata' : metadata of the audio 
 #     }
 
+
 def mashup_technic_1(tracks):
     sr = tracks[0]['sr'] # The first track is used to determine the bpm
     tempo, beat_frames = tracks[0]['metadata']["bpm"], np.array(tracks[0]['metadata']["beats"])
