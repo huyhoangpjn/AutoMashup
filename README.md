@@ -1,7 +1,7 @@
 # Automashup
 
 Automashup is a Python application that allows you to generate a mashup from several songs :
-![]([https://github.com/huyhoangpjn/AutoMashup/app.gif)
+![](https://github.com/huyhoangpjn/AutoMashup/blob/main/app.gif)
 
 ## Installation
 
