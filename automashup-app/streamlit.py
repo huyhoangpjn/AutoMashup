@@ -70,8 +70,13 @@ st.divider()
 ##### BARFI
 ### Tracks
 def feed_func(self):
+    track = load_track(self._options['Track']['value'])
     with st.spinner('Computing ' + self._name):
-        self.set_interface(name="Track", value=load_track(self._options['Track']['value']))
+        self.set_interface(name="Track", value=track)
+        self.set_interface(name='Vocals', value=split_track(track, 'vocals'))
+        self.set_interface(name='Bass', value=split_track(track, 'bass'))
+        self.set_interface(name='Drums', value=split_track(track, 'drums'))
+        self.set_interface(name='Other', value=split_track(track, 'other'))
 track_list = []
 
 if os.path.exists('./separated/htdemucs/'):
@@ -85,27 +90,13 @@ if track_list==[]:
 else:
     feed = Block(name="Track")
     feed.add_output("Track")
+    feed.add_output(name='Vocals')
+    feed.add_output(name='Bass')
+    feed.add_output(name='Drums')
+    feed.add_output(name='Other')
     feed.add_compute(feed_func)
-    feed.add_option("Track", 'select', value=track_list[0], items=track_list),
+    feed.add_option("Track", 'select', value=track_list[0], items=track_list)
 
-
-    ### Splitter
-    splitter = Block(name='Splitter')
-    splitter.add_input(name='Track')
-    splitter.add_output(name='Vocals')
-    splitter.add_output(name='Bass')
-    splitter.add_output(name='Drums')
-    splitter.add_output(name='Other')
-
-    def splitter_func(self):
-        track = self.get_interface(name='Track')
-        with st.spinner('Computing ' + self._name):
-            self.set_interface(name='Vocals', value=split_track(track, 'vocals'))
-            self.set_interface(name='Bass', value=split_track(track, 'bass'))
-            self.set_interface(name='Drums', value=split_track(track, 'drums'))
-            self.set_interface(name='Other', value=split_track(track, 'other'))
-
-    splitter.add_compute(splitter_func)
 
     ### Merger
     merger = Block(name='Mixer')
@@ -154,4 +145,4 @@ else:
     player.add_input(name='Track')
     player.add_compute(player_func)
 
-    barfi_result = st_barfi(base_blocks=[feed, splitter, merger, player], compute_engine=True)
+    barfi_result = st_barfi(base_blocks=[feed, merger, player], compute_engine=True)
