@@ -4,6 +4,7 @@ import librosa
 import shutil
 import json
 from pymusickit.key_finder import KeyFinder
+import math
 
 def increase_array_size(arr, new_size):
     """
@@ -119,9 +120,48 @@ def split_track(track, type):
     return dict
 
 
+def note_to_frequency(key):
+    note, mode = key.split(' ', 1)
+    reference_frequency=440.0
+    semitone_offsets = {'C': -9, 'C#': -8, 'Db': -8, 'D': -7, 'D#': -6, 'Eb': -6, 'E': -5, 'Fb': -5, 'E#': -4,
+                        'F': -4, 'F#': -3, 'Gb': -3, 'G': -2, 'G#': -1, 'Ab': -1, 'A': 0, 'A#': 1, 'Bb': 1, 'B': 2, 'Cb': 2, 'B#': 3}
+    semitone_offset = semitone_offsets[note]
+    if mode == 'minor':
+        semitone_offset -= 3 
+    frequency = reference_frequency * 2 ** (semitone_offset / 12)
+    return frequency
+
+
+def calculate_pitch_shift(source_freq, target_freq):
+    pitch_shift = 12 * math.log2(target_freq / source_freq)
+    return pitch_shift
+
+
 def key_from_dict(dict):
     best_key, best_score = "", ""
     for key, score in dict.items():
         if best_score=="" or best_score<score:
             best_key, best_score = key, score
     return best_key
+
+
+def repitch_audio(track, semitone_shift):
+    audio, sr = track['audio'], track['sr']
+    shifted_audio = librosa.effects.pitch_shift(audio, sr, n_steps=semitone_shift)
+    track['audio'] = shifted_audio
+    # To be done : update key metadatas
+    return track
+
+
+def pitch_track(track, target_key):
+    track_key = key_from_dict(track['metadata']['key'])
+    target_frequency = note_to_frequency(target_key)
+    track_frequency = note_to_frequency(track_key)
+    shifted_track = repitch_audio(track, calculate_pitch_shift(track_frequency, target_frequency))
+    return shifted_track
+    
+def repitch(tracks):
+    target_key = key_from_dict(tracks[0]['metadata']['key'])
+    for i in range(len(tracks)-1):
+        tracks[i+1] = pitch_track(tracks[i+1], target_key)
+    return tracks

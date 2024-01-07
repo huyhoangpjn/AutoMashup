@@ -1,5 +1,5 @@
 from utils import increase_array_size, load_instru, get_path, \
-get_input_path
+get_input_path, repitch
 import librosa
 import numpy as np
 
@@ -35,8 +35,13 @@ def mashup_technic_1(tracks):
     }
     return dict
 
-# To update with the new argument
 def mashup_technic_2(tracks):
+    tracks = repitch(tracks)
+    return mashup_technic_1(tracks)
+
+
+# To update with the new argument
+"""def mashup_technic_3(tracks):
     vocals_path = './separated/mdx_extra/' + vocals + '/vocals.mp3'
     vocals_song_path = './input/' + vocals
     vocals_song_path += '.mp3' if Path(vocals_song_path+'.mp3').is_file() else '.wav'
@@ -73,4 +78,4 @@ def mashup_technic_2(tracks):
 
     mashup = instru_aligned + vocals
 
-    return mashup, sr1
+    return mashup, sr1"""
