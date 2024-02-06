@@ -1,15 +1,16 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2
+from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_downbeats
 from utils import remove_track, key_finder, load_track, \
-split_track, key_from_dict
+split_track, key_from_dict, add_metronome
 import allin1
 import json
 from barfi import st_barfi, Block
 
+
 ## MASHUP METHODS
 # mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2), ('Mashup Technic 3', mashup_technic_3)]
-mashup_technics = {'Simple Mashup': mashup_technic_1, 'Mashup with repitch' : mashup_technic_2}
+mashup_technics = {'Simple Mashup': mashup_technic_1, 'Downbeat Mashup':mashup_technic_downbeats, 'Mashup with repitch' : mashup_technic_2}
 
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)
@@ -145,4 +146,23 @@ else:
     player.add_input(name='Track')
     player.add_compute(player_func)
 
-    barfi_result = st_barfi(base_blocks=[feed, merger, player], compute_engine=True)
+    ### Metronome
+    def metronome_func(self):
+        with st.spinner('Computing ' + self._name):
+            track = self.get_interface(name='Track')
+            if (track==None):
+                st.markdown("### "+self._name)
+                st.markdown("The metronome must have an input")
+            else:
+                st.markdown("### "+self._name + " : " + track["track_name"])
+                track = add_metronome(track)
+                mashup, sr = track["audio"], track["sr"]
+                st.audio(mashup, sample_rate=sr)
+                st.divider()
+
+
+    metronome = Block(name='Metronome')
+    metronome.add_input(name='Track')
+    metronome.add_compute(metronome_func)
+
+    barfi_result = st_barfi(base_blocks=[feed, merger, player, metronome], compute_engine=True)

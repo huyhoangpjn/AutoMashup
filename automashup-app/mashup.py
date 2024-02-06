@@ -3,6 +3,7 @@ get_input_path, repitch
 import librosa
 import numpy as np
 import math
+import scipy
 
 # tracks, the argument of mashup technics is a list of dicts looking 
 # like this : 
@@ -36,52 +37,33 @@ def mashup_technic_1(tracks):
     }
     return dict
 
+
+def mashup_technic_downbeats(tracks):
+    sr = tracks[0]['sr'] # The first track is used to determine the bpm
+    tempo, beat_frames = tracks[0]['metadata']["bpm"], np.array(tracks[0]['metadata']["downbeats"])
+    mashup = np.zeros(0)
+    mashup_name = ""
+    for track in tracks:
+        mashup_name += track['track_name'] + " "
+        track_tempo, track_beat_frames = track['metadata']["bpm"], np.array(track['metadata']["downbeats"])
+        beat_frames_aligned = track_beat_frames * (tempo / track_tempo)
+        separated_song = track['audio']
+        instru_aligned = np.roll(separated_song, int(beat_frames_aligned[0] - beat_frames[0]))
+        size = max(len(instru_aligned), len(mashup))
+        mashup = np.array(mashup)
+        mashup = (increase_array_size(instru_aligned, size) + increase_array_size(mashup, size))
+    dict = {
+    'track_name' : mashup_name, 
+    'audio' : mashup,
+    'sr' : sr, 
+    'metadata' : tracks[0]['metadata'] # Here we consider we keep the same metadata as the first song (might not be true for the key for instance)
+    }
+    return dict
+
+
 def mashup_technic_2(tracks):
     tracks = repitch(tracks)
     return mashup_technic_1(tracks)
-
-"""
-def get_beat_number(segment, track):
-    beats = track["metadata"]["beats"]
-    beat_number = beats.find(segment["end"])-beats.find(segment["start"])
-    return beat_number
-
-
-def smooth_transition(audio1, audio2):
-    y1, sr1 = librosa.load(song1_path, sr=sampling_rate)
-    y2, sr2 = librosa.load(song2_path, sr=sampling_rate)
-    min_len = min(len(y1), len(y2))
-    y1 = y1[:min_len]
-    y2 = y2[:min_len]
-    fade_in = np.linspace(0.0, 1.0, int(fade_duration * sampling_rate), endpoint=False)
-    fade_out = np.linspace(1.0, 0.0, int(fade_duration * sampling_rate), endpoint=False)
-    y1[:len(fade_in)] *= fade_in
-    y1[-len(fade_out):] *= fade_out
-    y2[:len(fade_in)] *= 1 - fade_in
-    y2[-len(fade_out):] *= 1 - fade_out
-    cutoff_frequency = 500.0  # Fréquence de coupure du filtre passe-haut en Hz
-    filter_order = 4
-    sos = scipy.signal.butter(filter_order, cutoff_frequency, btype='high', fs=sampling_rate, output='sos')
-    # Appliquer le filtre passe-haut à la deuxième chanson
-    y2_highpass = scipy.signal.sosfilt(sos, y2)
-    transition_signal = y1 + y2_highpass
-    librosa.output.write_wav(output_path, transition_signal, sr=sampling_rate)
-
-
-def fit_phase(track, segments, mother_track):
-    original_audio = track["audio"]
-    original_segments = track["metadata"]["segments"]
-    original_beats = track["metadata"]["beats"]
-    list_audio = []    
-    for segment in segments:
-        if segment["label"] == "chorus":
-            beat_number = get_beat_number(segment, mother_track)
-            phase = create_phase("chorus", beat_number, track)
-            
-        else : 
-
-
-    return track
 
 
 def mashup_technic_3(tracks):
@@ -90,7 +72,6 @@ def mashup_technic_3(tracks):
     segments = tracks[0]["metadata"]["segments"]
     mashup = np.zeros(0)
     mashup_name = ""
-
     for t in range(len(tracks-1)):
         track = fit_phase(tracks[t+1], segments)
         mashup_name += tracks[t+1]['track_name'] + " "
@@ -155,4 +136,4 @@ def mashup_technic_3(tracks):
 
     mashup = instru_aligned + vocals
 
-    return mashup, sr1"""
+    return mashup, sr1
