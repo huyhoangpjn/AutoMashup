@@ -1,5 +1,5 @@
 from utils import increase_array_size, load_instru, get_path, \
-get_input_path, repitch
+get_input_path, repitch, fit_phase
 import librosa
 import numpy as np
 import math
@@ -137,3 +137,9 @@ def mashup_technic_3(tracks):
     mashup = instru_aligned + vocals
 
     return mashup, sr1
+
+def mashup_technic_fit_phase(tracks):
+    sr = tracks[0]['sr'] # The first track is used to determine the bpm
+    for i in range(len(tracks)-1):
+        tracks[i+1] = fit_phase(tracks[i+1], tracks[0])
+    return mashup_technic_downbeats(tracks)

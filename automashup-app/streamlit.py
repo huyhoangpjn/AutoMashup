@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_downbeats
+from mashup import mashup_technic_1, mashup_technic_2, mashup_technic_downbeats, mashup_technic_fit_phase
 from utils import remove_track, key_finder, load_track, \
 split_track, key_from_dict, add_metronome
 import allin1
@@ -10,7 +10,7 @@ from barfi import st_barfi, Block
 
 ## MASHUP METHODS
 # mashup_technics = [('Mashup Technic 1', mashup_technic_1), ('Mashup Technic 2', mashup_technic_2), ('Mashup Technic 3', mashup_technic_3)]
-mashup_technics = {'Simple Mashup': mashup_technic_1, 'Downbeat Mashup':mashup_technic_downbeats, 'Mashup with repitch' : mashup_technic_2}
+mashup_technics = {'Simple Mashup': mashup_technic_1, 'Downbeat Mashup':mashup_technic_downbeats, 'Mashup with repitch' : mashup_technic_2, 'Mashup with phase fit' : mashup_technic_fit_phase}
 
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)

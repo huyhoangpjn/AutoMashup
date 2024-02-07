@@ -209,37 +209,45 @@ def smooth_transition(audio1, audio2):
     transition_signal = y1 + y2_highpass
     librosa.output.write_wav(output_path, transition_signal, sr=sampling_rate)
 
+
 def create_phase(phase_type, beat_number, track):
+    if beat_number==0:
+        return np.array([]), [], []
     segments = track['metadata']['segments']
     sr = track['sr']
     labels = [segment["label"] for segment in segments]
+
     if phase_type in labels:
         index = labels.index(phase_type)
         phase_beat_number, phase_beats = get_beats(segments[index], track)
         phase_downbeats = get_down_beats(segments[index], track)
-
         phase_beats = phase_beats - np.repeat(phase_beats[0], len(phase_beats))
         phase_downbeats = phase_downbeats - np.repeat(phase_downbeats[0], len(phase_downbeats))
 
-        phase_start = segments[index]["start"]
+        one_time_offset = phase_beats[1] 
+        variable_offset = phase_beats[-1]
 
+        phase_start = segments[index]["start"]
         phase_end = segments[index]["end"]
 
         phase = np.array(track['audio'][round(phase_start*sr):round(phase_end*sr)])
 
+        i = 1
         while phase_beat_number < beat_number:
-
             phase_beat_number*=2
-
             phase = np.concatenate((phase, phase))
-             
-            phase_beats = np.concatenate([np.array(phase_beats), phase_beats + np.repeat(phase_end, len(phase_beats))])
-
-            phase_downbeats = np.concatenate([phase_downbeats, phase_downbeats + np.repeat(phase_end, len(phase_downbeats))])
+            phase_beats = np.concatenate([np.array(phase_beats), phase_beats + np.repeat(variable_offset*i+one_time_offset, len(phase_beats))])
+            phase_downbeats = np.concatenate([phase_downbeats, phase_downbeats + np.repeat(variable_offset*i+one_time_offset, len(phase_downbeats))])
+            i*=2
 
         phase = phase[:round(len(phase)*(beat_number/phase_beat_number))]
-    return phase, phase_beats.tolist(), phase_downbeats.tolist(), phase_end
-
+        phase_beats = phase_beats.tolist()[:beat_number]
+        phase_downbeat_list = []
+        for phase_downbeat in phase_downbeats:
+            if phase_downbeat in phase_beats:
+                phase_downbeat_list.append(phase_downbeat)
+        
+    return phase, phase_beats, phase_downbeat_list
 
 
 def fit_phase(track, mother_track):
@@ -252,19 +260,18 @@ def fit_phase(track, mother_track):
     for segment in segments:
         if segment["label"] == "chorus":
             beat_number = get_beat_number(segment, mother_track)
-            phase, phase_beats, phase_downbeats, new_phase_end = create_phase("chorus", beat_number, track)
+            phase, phase_beats, phase_downbeats = create_phase("chorus", beat_number, track)
             list_audio.append(phase)
-
         else : 
             beat_number= get_beat_number(segment, mother_track)
-            phase, phase_beats, phase_downbeats, new_phase_end = create_phase("verse", beat_number, track)
+            phase, phase_beats, phase_downbeats = create_phase("verse", beat_number, track)
             list_audio.append(phase)
-        
         phase_beats = [phase_beat + phase_end for phase_beat in phase_beats]
-        phase_downbeats = [phase_downbeats + phase_end for phase_downbeats in phase_beats]
-
-        phase_end = new_phase_end
+        phase_downbeats = [phase_downbeat + phase_end for phase_downbeat in phase_downbeats]
         beats = beats + phase_beats
+        if len(beats)>1:
+            phase_end = beats[-1] + beats[-1] - beats[-2]
+        
         downbeats = downbeats + phase_downbeats
 
     audio = list_audio[0]
@@ -286,7 +293,9 @@ def add_metronome(track):
     beat_frames = track["metadata"]["beats"]
     track_audio = track['audio']
     for i, beat_frame in enumerate(beat_frames):
-        print(beat_frame)
-        track_audio[round(sr*beat_frame):] += increase_array_size(downbeat_sound_audio if i % 4 == 0 else otherbeat_sound_audio, len(track_audio[round(sr*beat_frame):]))
+        clic_sound = downbeat_sound_audio if i % 4 == 0 else otherbeat_sound_audio
+        clic = increase_array_size(clic_sound, len(track_audio[round(sr*beat_frame):]))
+        if len(track_audio[round(sr*beat_frame):])>=len(clic):
+            track_audio[round(sr*beat_frame):] += clic
     track['audio'] = track_audio
     return track
