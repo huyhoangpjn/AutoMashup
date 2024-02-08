@@ -10,10 +10,8 @@ def increase_array_size(arr, new_size):
     if len(arr) < new_size:
         # Create a new array with the new size
         increased_arr = np.zeros(new_size)
-
         # Copy elements from the original array to the new array
         increased_arr[:len(arr)] = arr
-
         return increased_arr
     else:
         return arr
@@ -44,21 +42,6 @@ def get_input_path(track_name):
     
     assert(os.path.exists(input_path))
     return input_path
-
-
-def load_instru(bass, drums, other):
-    bass_path = './separated/htdemucs/' + bass + '/bass.wav'
-    drums_path = './separated/htdemucs/' + drums + '/drums.wav'
-    other_path = './separated/htdemucs/' + other + '/other.wav'
-    paths = [bass_path, drums_path, other_path]
-    tracks = []
-    for path in paths:
-        if os.path.exists(path):
-            tracks.append(librosa.load(path))
-    sr = max(freq for _, freq in tracks)
-    for i in range(len(tracks)):
-        tracks[i] = (librosa.resample(tracks[i][0], orig_sr=tracks[i][1], target_sr=sr), sr)
-    return (np.vstack([track[0] for track in tracks]), sr)
 
 
 def remove_track(track_name):
@@ -152,6 +135,7 @@ def pitch_track(track, target_key):
     shifted_track = repitch_audio(track, calculate_pitch_shift(track_frequency, target_frequency))
     return shifted_track
     
+
 def repitch(tracks):
     target_key = key_from_dict(tracks[0]['metadata']['key'])
     for i in range(len(tracks)-1):
@@ -163,6 +147,7 @@ def closest_index(value, value_list):
     closest_index = min(range(len(value_list)), key=lambda i: abs(value_list[i] - value))
     return closest_index
 
+
 def get_beats(segment, track):
     beats = track["metadata"]["beats"]
 
@@ -172,6 +157,7 @@ def get_beats(segment, track):
     beat_number = end_beat-start_beat
     return beat_number, beats[start_beat:end_beat]
 
+
 def get_down_beats(segment, track):
     downbeats = track["metadata"]["downbeats"]
 
@@ -180,6 +166,7 @@ def get_down_beats(segment, track):
 
     beat_number = end_beat-start_beat
     return downbeats[start_beat:end_beat]
+
 
 def get_beat_number(segment, track):
     beats = track["metadata"]["beats"]

@@ -1,5 +1,5 @@
-from utils import increase_array_size, load_instru, get_path, \
-get_input_path, repitch, fit_phase
+from utils import increase_array_size, \
+repitch, fit_phase
 import librosa
 import numpy as np
 import math
@@ -64,6 +64,7 @@ def mashup_technic_downbeats(tracks):
     }
     return dict
 
+
 def mashup_technic_4(tracks):
     sr = tracks[0]['sr'] # The first track is used to determine the bpm
     tempo, beat_frames = tracks[0]['metadata']["bpm"], np.array(tracks[0]['metadata']["downbeats"])
@@ -87,6 +88,7 @@ def mashup_technic_4(tracks):
     'metadata' : tracks[0]['metadata'] # Here we consider we keep the same metadata as the first song (might not be true for the key for instance)
     }
     return dict
+
 
 def mashup_technic_2(tracks):
     tracks = repitch(tracks)
@@ -160,11 +162,13 @@ def mashup_technic_3(tracks):
     }
     return dict, 
 
+
 def mashup_technic_fit_phase(tracks):
     for i in range(len(tracks)-1):
         tracks[i+1] = fit_phase(tracks[i+1], tracks[0])
     return mashup_technic_downbeats(tracks)
 
+
 def mashup_technic_fit_phase_repitch(tracks):
     tracks = repitch(tracks)
-    return mashup_technic_downbeats(tracks)
+    return mashup_technic_fit_phase(tracks)
