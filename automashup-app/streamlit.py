@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from mashup import mashup_technic_1, mashup_technic_2, \
 mashup_technic_downbeats, mashup_technic_fit_phase, \
-mashup_technic_fit_phase_repitch, mashup_technic_4
+mashup_technic_fit_phase_repitch, mashup_technic_4, new_mashup_technic
 from utils import remove_track, key_finder, load_track, \
 split_track, key_from_dict, add_metronome
 import allin1
@@ -18,7 +18,8 @@ mashup_technics = \
     'Mashup with repitch' : mashup_technic_2, 
     'Mashup with phase fit' : mashup_technic_fit_phase, 
     'Mashup with phase fit and repitch': mashup_technic_fit_phase_repitch,
-    'Mashup technic 4': mashup_technic_4
+    'Mashup technic 4': mashup_technic_4,
+    'New Mashup technic' : new_mashup_technic
 }
 
 os.makedirs('./input', exist_ok=True)
