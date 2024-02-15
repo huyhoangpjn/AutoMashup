@@ -6,93 +6,12 @@ import json
 from pymusickit.key_finder import KeyFinder
 import math
 
-def increase_array_size(arr, new_size):
-    if len(arr) < new_size:
-        # Create a new array with the new size
-        increased_arr = np.zeros(new_size)
-        # Copy elements from the original array to the new array
-        increased_arr[:len(arr)] = arr
-        return increased_arr
-    else:
-        return arr
-    
-
-def adjust_bpm(bpm):
-    while bpm < 80 or bpm > 160:
-        if bpm < 80:
-            bpm *= 2
-        elif bpm > 160:
-            bpm /= 2
-    return bpm
-
-
-def get_path(track_name, type):
-    path = './separated/htdemucs/' + track_name + '/' + type + '.wav'
-    if not os.path.exists(path):
-        path = './separated/htdemucs/' + track_name + type + '.mp3'
-    assert(os.path.exists(path))
-    return path
-
-
-def get_input_path(track_name):
-    if os.path.exists('./input/' + track_name + '.wav'):
-        input_path = './input/' + track_name + '.wav'
-    else :
-        input_path = './input/' + track_name + '.mp3'
-    
-    assert(os.path.exists(input_path))
-    return input_path
-
 
 def remove_track(track_name):
     struct_path = "./struct/" + track_name + ".json"
     folder_path = "./separated/htdemucs/" + track_name + "/"
     os.remove(struct_path)
     shutil.rmtree(folder_path)
-
-
-def extract_filename(file_path):
-    filename = os.path.basename(file_path)
-    filename_without_extension, _ = os.path.splitext(filename)
-    return filename_without_extension
-
-
-def key_finder(path): 
-    filename = extract_filename(path)
-    struct_path = f"./struct/{filename}.json"
-    with open(struct_path, 'r') as file:
-        data = json.load(file)
-        data['key'] = KeyFinder(path).key_dict
-    with open(struct_path, 'w') as file:
-        json.dump(data, file, indent=2)
-
-
-def load_track(track_name):
-    audio, sr = librosa.load(get_input_path(track_name))
-    struct_path = f"./struct/{track_name}.json"
-    with open(struct_path, 'r') as file:
-        metadata = json.load(file)
-    dict = {
-        'track_name' : track_name, 
-        'audio' : audio, 
-        'sr' : sr, 
-        'metadata' : metadata
-        }
-    return dict
-
-
-def split_track(track, type):
-    track_name = track["track_name"]
-    sr = track["sr"]
-    metadata = track["metadata"]
-    audio, _ = librosa.load(get_path(track_name, type))
-    dict = {
-        'track_name' : track_name + '-' + type, 
-        'audio' : audio, 
-        'sr' : sr, 
-        'metadata' : metadata
-        }
-    return dict
 
 
 def note_to_frequency(key):
@@ -107,34 +26,9 @@ def note_to_frequency(key):
     return frequency
 
 
-def calculate_pitch_shift(source_freq, target_freq):
+def calculate_semitone_shift(source_freq, target_freq):
     pitch_shift = 12 * math.log2(target_freq / source_freq)
-    return pitch_shift
-
-
-def key_from_dict(dict):
-    best_key, best_score = "", ""
-    for key, score in dict.items():
-        if best_score=="" or best_score<score:
-            best_key, best_score = key, score
-    return best_key
-
-
-def repitch_audio(track, semitone_shift):
-    audio, sr = track['audio'], track['sr']
-    shifted_audio = librosa.effects.pitch_shift(audio, sr, n_steps=semitone_shift)
-    track['audio'] = shifted_audio
-    # To be done : update key metadatas
-    return track
-
-
-def pitch_track(track, target_key):
-    track_key = key_from_dict(track['metadata']['key'])
-    target_frequency = note_to_frequency(target_key)
-    track_frequency = note_to_frequency(track_key)
-    shifted_track = repitch_audio(track, calculate_pitch_shift(track_frequency, target_frequency))
-    return shifted_track
-    
+    return pitch_shift 
 
 def repitch(tracks):
     target_key = key_from_dict(tracks[0]['metadata']['key'])
@@ -143,37 +37,7 @@ def repitch(tracks):
     return tracks
 
 
-def closest_index(value, value_list):
-    closest_index = min(range(len(value_list)), key=lambda i: abs(value_list[i] - value))
-    return closest_index
 
-
-def get_beats(segment, track):
-    beats = track["metadata"]["beats"]
-
-    start_beat = closest_index(segment["start"], beats)
-    end_beat = closest_index(segment["end"], beats)
-
-    beat_number = end_beat-start_beat
-    return beat_number, beats[start_beat:end_beat]
-
-
-def get_down_beats(segment, track):
-    downbeats = track["metadata"]["downbeats"]
-
-    start_beat = closest_index(segment["start"], downbeats)
-    end_beat = closest_index(segment["end"], downbeats)
-
-    beat_number = end_beat-start_beat
-    return downbeats[start_beat:end_beat]
-
-
-def get_beat_number(segment, track):
-    beats = track["metadata"]["beats"]
-    start_beat = closest_index(segment["start"], beats)
-    end_beat = closest_index(segment["end"], beats)
-    beat_number = end_beat-start_beat
-    return beat_number
 
 
 def smooth_transition(audio1, audio2):
@@ -270,19 +134,4 @@ def fit_phase(track, mother_track):
     track['metadata']['beats'] = beats
     track['metadata']['downbeats'] = downbeats
 
-    return track
-
-
-def add_metronome(track):
-    sr = track['sr']
-    downbeat_sound_audio, _ = librosa.load("../metronome-sounds/block.mp3")
-    otherbeat_sound_audio, _ = librosa.load("../metronome-sounds/drumstick.mp3")
-    beat_frames = track["metadata"]["beats"]
-    track_audio = track['audio']
-    for i, beat_frame in enumerate(beat_frames):
-        clic_sound = downbeat_sound_audio if i % 4 == 0 else otherbeat_sound_audio
-        clic = increase_array_size(clic_sound, len(track_audio[round(sr*beat_frame):]))
-        if len(track_audio[round(sr*beat_frame):])>=len(clic):
-            track_audio[round(sr*beat_frame):] += clic
-    track['audio'] = track_audio
     return track
