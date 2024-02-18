@@ -1,10 +1,10 @@
 import numpy as np
 import os
-import librosa 
 import shutil
 import json
 from pymusickit.key_finder import KeyFinder
 import math
+
 
 def increase_array_size(arr, new_size):
     if len(arr) < new_size:
@@ -15,33 +15,21 @@ def increase_array_size(arr, new_size):
         return increased_arr
     else:
         return arr
-    
-
-def adjust_bpm(bpm):
-    while bpm < 80 or bpm > 160:
-        if bpm < 80:
-            bpm *= 2
-        elif bpm > 160:
-            bpm /= 2
-    return bpm
 
 
 def get_path(track_name, type):
-    path = './separated/htdemucs/' + track_name + '/' + type + '.wav'
-    if not os.path.exists(path):
-        path = './separated/htdemucs/' + track_name + type + '.mp3'
+    if type == 'entire':
+        if os.path.exists('./input/' + track_name + '.wav'):
+            path = './input/' + track_name + '.wav'
+        else :
+            path = './input/' + track_name + '.mp3'
+    else : 
+        path = './separated/htdemucs/' + track_name + '/' + type + '.wav'
+        if not os.path.exists(path):
+            path = './separated/htdemucs/' + track_name + type + '.mp3'
     assert(os.path.exists(path))
+
     return path
-
-
-def get_input_path(track_name):
-    if os.path.exists('./input/' + track_name + '.wav'):
-        input_path = './input/' + track_name + '.wav'
-    else :
-        input_path = './input/' + track_name + '.mp3'
-    
-    assert(os.path.exists(input_path))
-    return input_path
 
 
 def remove_track(track_name):
@@ -65,34 +53,6 @@ def key_finder(path):
         data['key'] = KeyFinder(path).key_dict
     with open(struct_path, 'w') as file:
         json.dump(data, file, indent=2)
-
-
-def load_track(track_name):
-    audio, sr = librosa.load(get_input_path(track_name))
-    struct_path = f"./struct/{track_name}.json"
-    with open(struct_path, 'r') as file:
-        metadata = json.load(file)
-    dict = {
-        'track_name' : track_name, 
-        'audio' : audio, 
-        'sr' : sr, 
-        'metadata' : metadata
-        }
-    return dict
-
-
-def split_track(track, type):
-    track_name = track["track_name"]
-    sr = track["sr"]
-    metadata = track["metadata"]
-    audio, _ = librosa.load(get_path(track_name, type))
-    dict = {
-        'track_name' : track_name + '-' + type, 
-        'audio' : audio, 
-        'sr' : sr, 
-        'metadata' : metadata
-        }
-    return dict
 
 
 def note_to_frequency(key):
@@ -120,169 +80,6 @@ def key_from_dict(dict):
     return best_key
 
 
-def repitch_audio(track, semitone_shift):
-    audio, sr = track['audio'], track['sr']
-    shifted_audio = librosa.effects.pitch_shift(audio, sr, n_steps=semitone_shift)
-    track['audio'] = shifted_audio
-    # To be done : update key metadatas
-    return track
-
-
-def pitch_track(track, target_key):
-    track_key = key_from_dict(track['metadata']['key'])
-    target_frequency = note_to_frequency(target_key)
-    track_frequency = note_to_frequency(track_key)
-    shifted_track = repitch_audio(track, calculate_pitch_shift(track_frequency, target_frequency))
-    return shifted_track
-    
-
-def repitch(tracks):
-    target_key = key_from_dict(tracks[0]['metadata']['key'])
-    for i in range(len(tracks)-1):
-        tracks[i+1] = pitch_track(tracks[i+1], target_key)
-    return tracks
-
-
 def closest_index(value, value_list):
     closest_index = min(range(len(value_list)), key=lambda i: abs(value_list[i] - value))
     return closest_index
-
-
-def get_beats(segment, track):
-    beats = track["metadata"]["beats"]
-
-    start_beat = closest_index(segment["start"], beats)
-    end_beat = closest_index(segment["end"], beats)
-
-    beat_number = end_beat-start_beat
-    return beat_number, beats[start_beat:end_beat]
-
-
-def get_down_beats(segment, track):
-    downbeats = track["metadata"]["downbeats"]
-
-    start_beat = closest_index(segment["start"], downbeats)
-    end_beat = closest_index(segment["end"], downbeats)
-
-    beat_number = end_beat-start_beat
-    return downbeats[start_beat:end_beat]
-
-
-def get_beat_number(segment, track):
-    beats = track["metadata"]["beats"]
-    start_beat = closest_index(segment["start"], beats)
-    end_beat = closest_index(segment["end"], beats)
-    beat_number = end_beat-start_beat
-    return beat_number
-
-
-def smooth_transition(audio1, audio2):
-    y1, sr1 = librosa.load(song1_path, sr=sampling_rate)
-    y2, sr2 = librosa.load(song2_path, sr=sampling_rate)
-    min_len = min(len(y1), len(y2))
-    y1 = y1[:min_len]
-    y2 = y2[:min_len]
-    fade_in = np.linspace(0.0, 1.0, int(fade_duration * sampling_rate), endpoint=False)
-    fade_out = np.linspace(1.0, 0.0, int(fade_duration * sampling_rate), endpoint=False)
-    y1[:len(fade_in)] *= fade_in
-    y1[-len(fade_out):] *= fade_out
-    y2[:len(fade_in)] *= 1 - fade_in
-    y2[-len(fade_out):] *= 1 - fade_out
-    cutoff_frequency = 500.0  # Fréquence de coupure du filtre passe-haut en Hz
-    filter_order = 4
-    sos = scipy.signal.butter(filter_order, cutoff_frequency, btype='high', fs=sampling_rate, output='sos')
-    # Appliquer le filtre passe-haut à la deuxième chanson
-    y2_highpass = scipy.signal.sosfilt(sos, y2)
-    transition_signal = y1 + y2_highpass
-    librosa.output.write_wav(output_path, transition_signal, sr=sampling_rate)
-
-
-def create_phase(phase_type, beat_number, track):
-    if beat_number==0:
-        return np.array([]), [], []
-    segments = track['metadata']['segments']
-    sr = track['sr']
-    labels = [segment["label"] for segment in segments]
-
-    if phase_type in labels:
-        index = labels.index(phase_type)
-        phase_beat_number, phase_beats = get_beats(segments[index], track)
-        phase_downbeats = get_down_beats(segments[index], track)
-        phase_beats = phase_beats - np.repeat(phase_beats[0], len(phase_beats))
-        phase_downbeats = phase_downbeats - np.repeat(phase_downbeats[0], len(phase_downbeats))
-
-        one_time_offset = phase_beats[1] 
-        variable_offset = phase_beats[-1]
-
-        phase_start = segments[index]["start"]
-        phase_end = segments[index]["end"]
-
-        phase = np.array(track['audio'][round(phase_start*sr):round(phase_end*sr)])
-
-        i = 1
-        while phase_beat_number < beat_number:
-            phase_beat_number*=2
-            phase = np.concatenate((phase, phase))
-            phase_beats = np.concatenate([np.array(phase_beats), phase_beats + np.repeat(variable_offset*i+one_time_offset, len(phase_beats))])
-            phase_downbeats = np.concatenate([phase_downbeats, phase_downbeats + np.repeat(variable_offset*i+one_time_offset, len(phase_downbeats))])
-            i*=2
-
-        phase = phase[:round(len(phase)*(beat_number/phase_beat_number))]
-        phase_beats = phase_beats.tolist()[:beat_number]
-        phase_downbeat_list = []
-        for phase_downbeat in phase_downbeats:
-            if phase_downbeat in phase_beats:
-                phase_downbeat_list.append(phase_downbeat)
-        
-    return phase, phase_beats, phase_downbeat_list
-
-
-def fit_phase(track, mother_track):
-    list_audio = [] 
-    beats = [] 
-    downbeats = []
-    phase_end = 0
-    segments = mother_track["metadata"]["segments"]
-
-    for segment in segments:
-        if segment["label"] == "chorus":
-            beat_number = get_beat_number(segment, mother_track)
-            phase, phase_beats, phase_downbeats = create_phase("chorus", beat_number, track)
-            list_audio.append(phase)
-        else : 
-            beat_number= get_beat_number(segment, mother_track)
-            phase, phase_beats, phase_downbeats = create_phase("verse", beat_number, track)
-            list_audio.append(phase)
-        phase_beats = [phase_beat + phase_end for phase_beat in phase_beats]
-        phase_downbeats = [phase_downbeat + phase_end for phase_downbeat in phase_downbeats]
-        beats = beats + phase_beats
-        if len(beats)>1:
-            phase_end = beats[-1] + beats[-1] - beats[-2]
-        
-        downbeats = downbeats + phase_downbeats
-
-    audio = list_audio[0]
-
-    for i in range(len(list_audio)-1):
-        audio = np.concatenate((audio, list_audio[i+1]))
-
-    track['audio'] = audio
-    track['metadata']['beats'] = beats
-    track['metadata']['downbeats'] = downbeats
-
-    return track
-
-
-def add_metronome(track):
-    sr = track['sr']
-    downbeat_sound_audio, _ = librosa.load("../metronome-sounds/block.mp3")
-    otherbeat_sound_audio, _ = librosa.load("../metronome-sounds/drumstick.mp3")
-    beat_frames = track["metadata"]["beats"]
-    track_audio = track['audio']
-    for i, beat_frame in enumerate(beat_frames):
-        clic_sound = downbeat_sound_audio if i % 4 == 0 else otherbeat_sound_audio
-        clic = increase_array_size(clic_sound, len(track_audio[round(sr*beat_frame):]))
-        if len(track_audio[round(sr*beat_frame):])>=len(clic):
-            track_audio[round(sr*beat_frame):] += clic
-    track['audio'] = track_audio
-    return track

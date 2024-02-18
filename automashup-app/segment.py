@@ -1,9 +1,6 @@
 import numpy as np
 
-def closest_index(value, value_list):
-    closest_index = min(range(len(value_list)), key=lambda i: abs(value_list[i] - value))
-    return closest_index
-
+from utils import closest_index
 
 
 class Segment:

@@ -3,6 +3,7 @@ import librosa
 import numpy as np
 from track import Track
 
+
 def mashup_technic(tracks):
     sr = tracks[0].sr # The first track is used to determine the bpm
     tempo= tracks[0].bpm
@@ -24,6 +25,7 @@ def mashup_technic(tracks):
         mashup = np.array(mashup)
         mashup = (increase_array_size(final_track_audio, size) + increase_array_size(mashup, size))
     return Track.mashup_track(tracks[0], mashup)
+
 
 def mashup_technic_fit_phase(tracks):
     for i in range(len(tracks)-1):

@@ -1,35 +1,11 @@
 import json
 import librosa
-import os
 import numpy as np
 import copy
 
-from utils import note_to_frequency, calculate_pitch_shift
+from utils import note_to_frequency, calculate_pitch_shift, get_path,\
+      increase_array_size
 from segment import *
-
-def get_path(track_name, type):
-    if type == 'entire':
-        if os.path.exists('./input/' + track_name + '.wav'):
-            path = './input/' + track_name + '.wav'
-        else :
-            path = './input/' + track_name + '.mp3'
-
-    else : 
-        path = './separated/htdemucs/' + track_name + '/' + type + '.wav'
-        if not os.path.exists(path):
-            path = './separated/htdemucs/' + track_name + type + '.mp3'
-
-    assert(os.path.exists(path))
-
-    return path
-
-def increase_array_size(arr, new_size):
-    if len(arr) < new_size:
-        increased_arr = np.zeros(new_size)
-        increased_arr[:len(arr)] = arr
-        return increased_arr
-    else:
-        return arr
 
 
 # Track object

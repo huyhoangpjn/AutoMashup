@@ -1,13 +1,14 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_fit_phase, \
-mashup_technic_fit_phase_repitch, mashup_technic
-from utils import remove_track, key_finder, load_track, \
-split_track, key_from_dict, add_metronome
 import allin1
 import json
 from barfi import st_barfi, Block
+
 from track import Track
+from mashup import mashup_technic_fit_phase, \
+mashup_technic_fit_phase_repitch, mashup_technic
+from utils import remove_track, key_finder, key_from_dict
+
 
 ## MASHUP METHODS
 mashup_technics = \
@@ -17,20 +18,23 @@ mashup_technics = \
     'Mashup with phase fit and repitch': mashup_technic_fit_phase_repitch,
 }
 
+
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)
 os.makedirs('./output', exist_ok=True)
 st.set_page_config(layout="wide")
 
+
 # Titre de l'application
 st.title("AutoMashup")
 st.markdown("### A workflow app which generates mashups")
 
-# Upload de fichiers audio
 
+# Upload de fichiers audio
 with st.form("audio-form", clear_on_submit=True):
     audio_files = st.file_uploader("Select audio files (mp3, wav)", type=["mp3", "wav"], accept_multiple_files=True)
     submitted = st.form_submit_button("Trigger Preprocessing")
+
 
 # Check if files are uploaded
 if submitted and audio_files:
@@ -165,5 +169,6 @@ else:
     metronome = Block(name='Metronome')
     metronome.add_input(name='Track')
     metronome.add_compute(metronome_func)
+
 
     barfi_result = st_barfi(base_blocks=[feed, merger, player, metronome], compute_engine=True)
