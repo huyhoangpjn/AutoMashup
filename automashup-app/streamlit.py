@@ -1,25 +1,20 @@
 import streamlit as st
 import os
-from mashup import mashup_technic_1, mashup_technic_2, \
-mashup_technic_downbeats, mashup_technic_fit_phase, \
-mashup_technic_fit_phase_repitch, mashup_technic_4, new_mashup_technic
+from mashup import mashup_technic_fit_phase, \
+mashup_technic_fit_phase_repitch, mashup_technic
 from utils import remove_track, key_finder, load_track, \
 split_track, key_from_dict, add_metronome
 import allin1
 import json
 from barfi import st_barfi, Block
-
+from track import Track
 
 ## MASHUP METHODS
 mashup_technics = \
 {
-    'Simple Mashup': mashup_technic_1, 
-    'Downbeat Mashup':mashup_technic_downbeats, 
-    'Mashup with repitch' : mashup_technic_2, 
+    'Mashup technic' : mashup_technic,
     'Mashup with phase fit' : mashup_technic_fit_phase, 
     'Mashup with phase fit and repitch': mashup_technic_fit_phase_repitch,
-    'Mashup technic 4': mashup_technic_4,
-    'New Mashup technic' : new_mashup_technic
 }
 
 os.makedirs('./input', exist_ok=True)
@@ -81,13 +76,13 @@ st.divider()
 ##### BARFI
 ### Tracks
 def feed_func(self):
-    track = load_track(self._options['Track']['value'])
+    track_name = self._options['Track']['value']
     with st.spinner('Loading ' + self._name):
-        self.set_interface(name="Track", value=track)
-        self.set_interface(name='Vocals', value=split_track(track, 'vocals'))
-        self.set_interface(name='Bass', value=split_track(track, 'bass'))
-        self.set_interface(name='Drums', value=split_track(track, 'drums'))
-        self.set_interface(name='Other', value=split_track(track, 'other'))
+        self.set_interface(name="Track", value=Track.track_from_song(track_name, 'entire'))
+        self.set_interface(name='Vocals', value=Track.track_from_song(track_name, 'vocals'))
+        self.set_interface(name='Bass', value=Track.track_from_song(track_name, 'bass'))
+        self.set_interface(name='Drums', value=Track.track_from_song(track_name, 'drums'))
+        self.set_interface(name='Other', value=Track.track_from_song(track_name, 'other'))
 track_list = []
 
 if os.path.exists('./separated/htdemucs/'):
@@ -108,17 +103,13 @@ else:
     feed.add_compute(feed_func)
     feed.add_option("Track", 'select', value=track_list[0], items=track_list)
 
-
     ### Merger
     merger = Block(name='Mixer')
-
     merger.add_output(name='Result')
-
     merger.add_input(name='Input 1 (Beat Structure)')
     merger.add_input(name='Input 2')
     merger.add_input(name='Input 3')
     merger.add_input(name='Input 4')
-
     merger.add_option("Method", 'select', value=next(iter(mashup_technics)), items=list(mashup_technics.keys()))
 
     def merger_func(self):
@@ -146,8 +137,8 @@ else:
                 st.markdown("### "+self._name)
                 st.markdown("The player must have an input")
             else:
-                st.markdown("### "+self._name + " : " + track["track_name"])
-                mashup, sr = track["audio"], track["sr"]
+                st.markdown("### "+self._name + " : " + track.name)
+                mashup, sr = track.audio, track.sr
                 st.audio(mashup, sample_rate=sr)
                 st.divider()
 
@@ -164,9 +155,9 @@ else:
                 st.markdown("### "+self._name)
                 st.markdown("The metronome must have an input")
             else:
-                st.markdown("### "+self._name + " : " + track["track_name"])
-                track = add_metronome(track)
-                mashup, sr = track["audio"], track["sr"]
+                st.markdown("### "+self._name + " : " + track.name)
+                track.add_metronome()
+                mashup, sr = track.audio, track.sr
                 st.audio(mashup, sample_rate=sr)
                 st.divider()
 
