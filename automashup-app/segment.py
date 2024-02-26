@@ -45,8 +45,8 @@ class Segment:
         else:
             self.beats = self.beats - np.repeat(self.beats[0], len(self.beats))
 
-            self.downbeats = [downbeat for downbeat in downbeats if downbeat in self.beats]
-            
+            self.downbeats = downbeats - np.repeat(downbeats[0], len(downbeats))
+            self.downbeats = [downbeat for downbeat in self.downbeats if downbeat in self.beats]
             if self.downbeats != []:
                 self.downbeats = self.downbeats - np.repeat(self.downbeats[0], len(self.downbeats))
 
@@ -65,7 +65,7 @@ class Segment:
         # Functions to concatenate two segments, and to keep track of beats and downbeats
         # transition_length = min(len(self.right_transition), len(segment.left_transition))
         self.beats = np.concatenate([np.array(self.beats), segment.beats + np.repeat(len(self.audio)*1/self.sr,len(self.beats))])
-        self.downbeats = np.concatenate([self.downbeats, segment.downbeats + np.repeat(len(self.audio)*1/self.sr,len(segment.downbeats))])
+        self.downbeats = np.concatenate([self.downbeats, segment.downbeats + np.repeat(len(self.audio)*1/self.sr,len(self.downbeats))])
         self.audio = np.concatenate((self.audio, segment.audio))
 
 
@@ -81,7 +81,7 @@ class Segment:
                 result.concatenate(self)
             result.audio = result.audio[:round(len(result.audio)*(beat_number/len(result.beats)))]
             result.beats = result.beats.tolist()[:beat_number]
-            result.downbeats = [phase_downbeat for phase_downbeat in result.downbeats if phase_downbeat<result.beats[-1]]
+            result.downbeats = [downbeat for downbeat in result.downbeats if downbeat<result.beats[-1]]
         return result
 
 
