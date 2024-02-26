@@ -1,87 +1,88 @@
 import numpy as np
-
+import copy
 from utils import closest_index
 
+# Define a Track class to represent a part of a track
+# The aim of this kind of object is to keep together the audio itself,
+# and the beats
 
 class Segment:
+
+    transition_time = 0.5 # transition time in seconds
+
     def __init__(self, segment_dict):
+        # We create a segment from a dict coming from metadata.
+        # They look like this : 
+        # {
+        #   "start": 0.4,
+        #   "end": 22.82,
+        #   "label": "verse"
+        # }
+
         for key in segment_dict.keys():
             setattr(self, key, segment_dict[key])
 
+
     def link_track(self, track):
-        self.track = track
-
-    def get_beat_number(self):
-        start_beat = closest_index(self.start, self.track.beats)
-        end_beat = closest_index(self.end, self.track.beats)
-        return end_beat-start_beat
-    
-
-    def get_length_seconds(self):
-        return self.end - self.start
-    
-
-    def get_beats(self):
-        beats = self.track.beats
-        start_beat = closest_index(self.start, beats)
-        end_beat = closest_index(self.end, beats)
-        return end_beat-start_beat, beats[start_beat:end_beat]
-    
-
-    def get_beats_no_offset(self):
-        beat_number, beats = self.get_beats()
-        beats = beats - np.repeat(beats[0], len(beats))
-        return beat_number, beats
-
-
-    def get_downbeats(self):
-        beats = self.track.downbeats
-        start_beat = closest_index(self.start, beats)
-        end_beat = closest_index(self.end, beats)
-        return end_beat-start_beat, beats[start_beat:end_beat]
-    
-
-    def get_downbeats_no_offset(self):
-        beat_number, beats = self.get_downbeats()
-        beats = beats - np.repeat(beats[0], len(beats))
-        return beat_number, beats
-
-
-    def get_audio(self):
-         return self.track.audio[round(self.start*self.track.sr):round(self.end*self.track.sr)]
-    
-    def get_audio_margin(self, margin):
-        if self.start-margin>0 and round((self.end+margin)*self.track.sr)<len(self.track.audio):
-            return self.track.audio[round((self.start-margin)*self.track.sr):round((self.end+margin)*self.track.sr)], margin
-        else:
-            return self.get_audio(), 0
-    
-    def get_audio_beat_fitted(self, beat_number, fade_duration = 0):
-        if beat_number==0:
-            return np.array([]), [], []
-        phase, margin = self.get_audio_margin(fade_duration)
-
-        segment_beat_number, segment_beats = self.get_beats_no_offset()
-
-        phase_beat_number, phase_beats = segment_beat_number, segment_beats
-
-        _, segment_downbeats = self.get_downbeats_no_offset()
-
-        phase_downbeats = segment_downbeats[margin*self.track.sr:]
-
-        while phase_beat_number < beat_number:
-            phase_beat_number += segment_beat_number
-            phase_beats = np.concatenate([np.array(phase_beats), segment_beats + np.repeat(len(phase)*1/self.track.sr,len(segment_beats))])
-            phase_downbeats = np.concatenate([phase_downbeats, segment_downbeats + np.repeat(len(phase)*1/self.track.sr,len(segment_downbeats))])
-
-            phase = np.concatenate((phase, self.get_audio()))
-            # phase = cross_fade(phase, self.get_audio_margin(fade_duration))
-
-        phase = phase[:round(len(phase)*(beat_number/phase_beat_number))]
-        phase_beats = phase_beats.tolist()[:beat_number]
+        # Function to link a segment to a track, must be set whenever
+        # we create a segment
+        # it loads all the pieces of information useful for a segment
+        self.sr = track.sr
+        beats = track.beats
+        downbeats = track.downbeats
         
-        phase_downbeats = [phase_downbeat for phase_downbeat in phase_downbeats if phase_downbeat<phase_beats[-1]]
-        return phase, phase_beats, phase_downbeats
+        start_beat = closest_index(self.start, beats)
+        end_beat = closest_index(self.end, beats)
+
+        self.beats = beats[start_beat:end_beat]
+        
+        if self.beats == []:
+            self.downbeats = []
+            self.audio = np.array([])
+            self.left_transition = np.array([])
+            self.right_transition = np.array([])
+
+        else:
+            self.beats = self.beats - np.repeat(self.beats[0], len(self.beats))
+
+            self.downbeats = [downbeat for downbeat in downbeats if downbeat in self.beats]
+            
+            if self.downbeats != []:
+                self.downbeats = self.downbeats - np.repeat(self.downbeats[0], len(self.downbeats))
+
+            self.audio = track.audio[round(self.start*self.sr):round(self.end*self.sr)]
+
+            if self.start - self.transition_time > 0 :
+                self.left_transition = track.audio[round((self.start-self.transition_time)*self.sr):round(self.start*self.sr)]
+            else :
+                self.left_transition = track.audio[:round(self.start*self.sr)]
+            if self.end + self.transition_time < len(track.audio) * self.sr:
+                self.right_transition = track.audio[round(self.end*self.sr):round((self.end+self.transition_time)*self.sr)]
+            else : 
+                self.right_transition = track.audio[round(self.end*self.sr):]
+
+    def concatenate(self, segment):
+        # Functions to concatenate two segments, and to keep track of beats and downbeats
+        # transition_length = min(len(self.right_transition), len(segment.left_transition))
+        self.beats = np.concatenate([np.array(self.beats), segment.beats + np.repeat(len(self.audio)*1/self.sr,len(self.beats))])
+        self.downbeats = np.concatenate([self.downbeats, segment.downbeats + np.repeat(len(self.audio)*1/self.sr,len(segment.downbeats))])
+        self.audio = np.concatenate((self.audio, segment.audio))
+
+
+    def get_audio_beat_fitted(self, beat_number):
+        # function to fit a segment to a certain beat number
+        result = copy.deepcopy(self)
+        if beat_number==0:
+            result.audio = np.array([])
+            result.beats = []
+            result.downbeats = []
+        else : 
+            while len(result.beats) < beat_number:
+                result.concatenate(self)
+            result.audio = result.audio[:round(len(result.audio)*(beat_number/len(result.beats)))]
+            result.beats = result.beats.tolist()[:beat_number]
+            result.downbeats = [phase_downbeat for phase_downbeat in result.downbeats if phase_downbeat<result.beats[-1]]
+        return result
 
 
 
