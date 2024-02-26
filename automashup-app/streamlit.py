@@ -7,7 +7,7 @@ from barfi import st_barfi, Block
 
 from track import Track
 from mashup import mashup_technic_fit_phase, \
-mashup_technic_fit_phase_repitch, mashup_technic
+mashup_technic_fit_phase_repitch, mashup_technic, mashup_technic_repitch
 from utils import remove_track, key_from_dict, key_finder
 
 
@@ -16,6 +16,7 @@ mashup_technics = \
 {
     'Mashup technic' : mashup_technic,
     'Mashup with phase fit' : mashup_technic_fit_phase, 
+    'Mashup with repitch' : mashup_technic_repitch,
     'Mashup with phase fit and repitch': mashup_technic_fit_phase_repitch,
 }
 
