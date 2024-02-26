@@ -8,7 +8,7 @@ from barfi import st_barfi, Block
 from track import Track
 from mashup import mashup_technic_fit_phase, \
 mashup_technic_fit_phase_repitch, mashup_technic
-from utils import remove_track, key_from_dict
+from utils import remove_track, key_from_dict, key_finder
 
 
 ## MASHUP METHODS
@@ -48,7 +48,7 @@ if submitted and audio_files:
             
             #trigger analyze
             allin1.analyze(path, out_dir='./struct', demix_dir='./separated', keep_byproducts=True)
-
+            key_finder(path)
             audio_file = None
 
     st.success('Preprocessing completed !')

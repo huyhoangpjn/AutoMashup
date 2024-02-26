@@ -2,6 +2,8 @@ import numpy as np
 import os
 import shutil
 import math
+import json
+from pymusickit.key_finder import KeyFinder
 
 ### Here are some useful functions used in other parts of the project
 
@@ -61,6 +63,16 @@ def note_to_frequency(key):
         semitone_offset -= 3 
     frequency = reference_frequency * 2 ** (semitone_offset / 12)
     return frequency
+
+
+def key_finder(path): 
+    filename = extract_filename(path)
+    struct_path = f"./struct/{filename}.json"
+    with open(struct_path, 'r') as file:
+        data = json.load(file)
+        data['key'] = KeyFinder(path).key_dict
+    with open(struct_path, 'w') as file:
+        json.dump(data, file, indent=2)
 
 
 def calculate_pitch_shift(source_freq, target_freq):
