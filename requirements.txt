@@ -1,6 +1,5 @@
 allin1==1.1.0
 barfi==0.7.0
-pymusickit==0.1.1
 matplotlib
 spleeter
 demucs==4.0.1
@@ -9,3 +8,5 @@ librosa==0.10.1
 numpy==1.26.2
 soundfile==0.12.1
 streamlit
+pandas
+st_on_hover_tabs
