@@ -45,7 +45,7 @@ class Track:
         # type should be one of the following : 
         # 'entire', 'bass', 'drums', 'vocals', 'other'       
         name = track_name + ' - ' + type
-        audio, sr = librosa.load(get_path(track_name, type), sr=44100)
+        audio, sr = librosa.load(get_path(track_name, type), sr=None)
         struct_path = f"./struct/{track_name}.json"
         with open(struct_path, 'r') as file:
             metadata = json.load(file)
