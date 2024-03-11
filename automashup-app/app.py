@@ -26,7 +26,7 @@ os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)
 os.makedirs('./output', exist_ok=True)
 st.set_page_config(layout="wide")
-
+st.title("AutoMashup App")
 
 
 
@@ -55,9 +55,6 @@ with st.sidebar:
 
 
 if tabs =='App':
-    st.title("AutoMashup App")
-    # st.write('Name of option is {}'.format(tabs))
-
     # Audio files upload
     with st.form("audio-form", clear_on_submit=True):
         audio_files = st.file_uploader("Select audio files (mp3, wav)", type=["mp3", "wav"], accept_multiple_files=True)

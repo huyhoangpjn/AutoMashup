@@ -1,11 +1,13 @@
-/test_spleeter/pretrained_models/*
-/.venv/*
 /beat_track/*
+
 /automashup-app/__pycache__/
 /automashup-app/input/*
 /automashup-app/output/*
 /automashup-app/separated/*
 /automashup-app/struct/*
-/automashup-app/demix/*
-/automix-toolkit
+
 /automashup-notebook/output.wav
+/automashup-notebook/input/*
+/automashup-notebook/output/*
+/automashup-notebook/separated/*
+/automashup-notebook/struct/*
