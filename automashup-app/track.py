@@ -51,7 +51,7 @@ class Track:
             metadata = json.load(file)
         return Track(name, audio, metadata, sr)
 
-
+        
     def get_key(self):
         # Function to retrieve the key of a track
         # we use the "key" metadata which is a list of correlation

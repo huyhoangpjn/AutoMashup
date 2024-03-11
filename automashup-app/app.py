@@ -262,5 +262,4 @@ if tabs == 'Contribute':
     st.markdown('If you want to contribute to our project, have a look on our Github ! ')
     st.markdown('https://github.com/huyhoangpjn/AutoMashup')
     st.image('./images/IMT_Atlantique_logo.png')
-    
 
