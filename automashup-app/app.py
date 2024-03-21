@@ -25,7 +25,7 @@ mashup_technics = \
 os.makedirs('./input', exist_ok=True)
 os.makedirs('./separated/htdemucs', exist_ok=True)
 os.makedirs('./output', exist_ok=True)
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Automashup")
 st.title("AutoMashup App")
 
 
