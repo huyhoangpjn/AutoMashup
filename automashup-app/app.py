@@ -257,6 +257,7 @@ if tabs == 'The project':
     
     st.markdown("## Tutorial")
     st.markdown("To follow this tutorial, you'll have to go to the app section of this website.")
+    st.markdown("We strongly recommand the use of a computer, the interface is not optimized for touchscreens.")
     st.markdown("#### Import and preprocess songs")
     
     st.markdown("Browse through the files on your computer to import the songs of your choice.")
