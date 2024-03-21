@@ -249,6 +249,8 @@ if tabs == 'The project':
     st.markdown("### How does it work ?")
     st.markdown("Given several songs, our app uses state-of-the-art tools to separate the sources of the songs and then to reunite them to create a new song.")
     
+    st.markdown("## [Survey](http://automashup.ddns.net:8080/)")
+    st.markdown("We're making a survey to improve our methods, please help us by **[taking part !](http://automashup.ddns.net:8080/)**")
     st.markdown("## Examples of mashups realized with the app")
     st.audio("./examples/shape of you - love me harder.wav")
     st.audio("./examples/je t'aime de ouf - love me harder.wav")
