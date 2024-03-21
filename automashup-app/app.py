@@ -248,10 +248,50 @@ if tabs == 'The project':
     st.markdown("Hello there ! We're a group of students who worked to develop a web application that aims to create mashups automaticaly.")
     st.markdown("### How does it work ?")
     st.markdown("Given several songs, our app uses state-of-the-art tools to separate the sources of the songs and then to reunite them to create a new song.")
-    st.markdown("## Tutorial")
+    
     st.markdown("## Examples of mashups realized with the app")
     st.audio("./examples/shape of you - love me harder.wav")
     st.audio("./examples/je t'aime de ouf - love me harder.wav")
+    
+    st.markdown("## Tutorial")
+    st.markdown("To follow this tutorial, you'll have to go to the app section of this website.")
+    st.markdown("#### Import and preprocess songs")
+    
+    st.markdown("Browse through the files on your computer to import the songs of your choice.")
+    st.image("./images/1.png")
+    
+    # Preprocessing section
+    st.markdown("Trigger preprocessing to add your song to the list of songs.")
+    st.image("./images/2.png")
+    st.markdown("Once it's done, your song will be added to the list, along with information about its BPM and key. You can also download its analysis and remove any track you want.")
+    st.image("./images/3.png")
+    
+    # Mashup creation section
+    st.image("./images/4.png")
+    st.markdown("Now, you can start creating your mashup. Just below the song list is an area where you can add the blocks that will form your mashup. Right click on the area to create blocks.")
+    st.image("./images/5.png")
+
+    # Track blocks section
+    st.markdown("#### Track Workflow")
+    st.markdown("First, add your 'Track' blocks and choose the songs you want to mix using the elevator.")
+    st.image("./images/6.png")
+    # Mixer block section
+    st.markdown("Then, add a 'Mixer' block and choose your mashup technique.")
+    st.image("./images/7.png")
+    # Linking section
+    st.markdown("Now, link your 'Track' blocks to your 'Mixer' block by selecting the vocals or instruments of your choice for each input.")
+    st.image("./images/8.png")
+    # Player block section
+    st.markdown("inally, link your 'Mixer' block to a 'Player' block and choose whether or not to enable the Metronome option to add a metronome noise in the background of your mashup.")
+    st.image("./images/9.png")
+    
+    # Execution and result section
+    st.markdown("#### Execution")
+    st.markdown("Once it’s done, you can execute it.")
+    st.image("./images/10.png")
+    st.markdown("It will take a few seconds, and then the player will appear.")
+    st.markdown("Congratulations, you can now listen to your own mashup!")
+    st.image("./images/11.png")
 
 
 if tabs == 'Contribute':
