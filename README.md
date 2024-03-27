@@ -5,7 +5,7 @@ Automashup is a Python application that allows you to generate a mashup from sev
 
 ## Installation
 
-We strongly recommand the use of a Python 3.10 environment.
+We strongly recommand the use of a Python 3.10 environment and a dedicated Conda environment.
 
 > pip3.10 install -r requirements.txt
 
